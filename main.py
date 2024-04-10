@@ -22,6 +22,10 @@ def encrypt_file_ECB(filename, key):
     header = contents[:54]
     contents = contents[54:]
 
+    # Open the file in write mode ('w') to clear its contents
+    with open('cipher.bmp', 'w'):
+        pass
+
     # open cipher text file and write each block as encrypted
     # change naming convention to customize for specified file we're encrypting at some point...
     with open('cipher.bmp', 'ab') as f:
