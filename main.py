@@ -11,13 +11,6 @@ def key_IV_gen():
     return binascii.hexlify(key)
 
 
-# function to encrypt a 128 bit block and return the 128 bit block encryption
-def encrypt_block(block):
-    # block is a 128 bit block of a message we want encrypted
-
-    return
-
-
 # function to encrypt a file
 """maybe pull out encryption of message to have encrypt_message 
 function and encrypt_file function that calls encrypt_message?"""
@@ -54,7 +47,6 @@ def encrypt_file_ECB(filename, key):
     return
 
 
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     print('PyCharm')
     key = key_IV_gen()
