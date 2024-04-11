@@ -1,7 +1,7 @@
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 from Crypto.Util.Padding import unpad
-from urllib.parse import urlencode
+from urllib.parse import quote
 
 
 """---------------------------- Task 1 --------------------------------"""
@@ -109,6 +109,9 @@ appends and prepends given strings, pads the string (PKCS#7),
 and returns the CBC encryption of the new string"""
 def submit(string):
     # URL encode ';' and '=' from user string
+    encoded_semicolon = quote(';')
+    encoded_equal = quote('=')
+    string = string.replace(';', encoded_semicolon).replace('=', encoded_equal)
 
     # prepend and append
     new_string = "userid=456; userdata=" + string + ";session-id=31337"
@@ -125,7 +128,7 @@ if __name__ == '__main__':
     print('Starting...')
     t1 = input("\nExecute Task 1? (y/n) ")
     if t1 == 'y':
-        print("Task 1:")
+        print("------------------------- Task 1 -------------------------\n")
         print("Encrypting file using ECB and CBC")
         key = get_random_bytes(16)
         IV = get_random_bytes(16)
@@ -133,7 +136,7 @@ if __name__ == '__main__':
         encrypt_file('mustang.bmp', key, IV, "CBC")
         print("Encryption Finished\nNew encrypted files: cipherECB.bmp and cipherCBC.bmp")
 
-    print("\n\nTask 2:")
+    print("\n\n------------------------- Task 2 -------------------------\n")
     user_string = "sixteen sixteen :admin<true:"
 
     print(submit(user_string))
