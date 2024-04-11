@@ -1,13 +1,11 @@
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 from Crypto.Util.Padding import unpad
+from urllib.parse import urlencode
 
-user_text = "sixteen sixteen :admin<true:"
 
 """---------------------------- Task 1 --------------------------------"""
-# function to encrypt a file
-"""maybe pull out encryption of message to have encrypt_message 
-function and encrypt_file function that calls encrypt_message?"""
+
 """Function to encrypt a file. Supports ECB and CBC as its mode."""
 def encrypt_file(filename, key, IV, mode):
     scrambler = IV
@@ -37,24 +35,29 @@ def encrypt_file(filename, key, IV, mode):
             # get blocks
             block = contents[:16]
             contents = contents[16:]
-            # check if padding is needed
-            if len(block) != 16:
-                bytes_needed = 16 - len(block)  # calculate number of bytes needing padding
-                # add padding
-                padding_byte = bytes([bytes_needed])
-                block += padding_byte * bytes_needed  # adds the byte representation of the number of bytes padded
-            if mode == "CBC":
-                new = bytearray(len(block))
-                # xor with scrambler (init IV)
-                for i in range(0, len(block)):
-                    new[i] = block[i] ^ scrambler[i]
-                block = new
-            # encrypt new block
-            cipher_block = cipher.encrypt(block)
-            f.write(cipher_block)
+            cipher_block = encrypt_block(cipher, block, scrambler, mode)
             if mode == "CBC":
                 scrambler = cipher_block
+            f.write(cipher_block)
 
+
+"""This function takes a 128 bit block of contents and encrypts it based on the mode"""
+def encrypt_block(cipher, block, scrambler, mode):
+    # check if padding is needed
+    if len(block) != 16:
+        bytes_needed = 16 - len(block)  # calculate number of bytes needing padding
+        # add padding
+        padding_byte = bytes([bytes_needed])
+        block += padding_byte * bytes_needed  # adds the byte representation of the number of bytes padded
+    if mode == "CBC":
+        new = bytearray(len(block))
+        # xor with scrambler (init IV)
+        for i in range(0, len(block)):
+            new[i] = block[i] ^ scrambler[i]
+        block = new
+    # encrypt new block
+    cipher_block = cipher.encrypt(block)
+    return cipher_block
 
 # function to decrypt CBC to double check it works...
 def decrypt_CBC(key, IV):
@@ -101,16 +104,39 @@ def decrypt_ECB(key):
 
 """---------------------------- Task 2 --------------------------------"""
 
+"""submit() URL encodes any ';', '=' chars in the user string, 
+appends and prepends given strings, pads the string (PKCS#7), 
+and returns the CBC encryption of the new string"""
+def submit(string):
+    # URL encode ';' and '=' from user string
+
+    # prepend and append
+    new_string = "userid=456; userdata=" + string + ";session-id=31337"
+
+    # pad new string
+
+    # encrypt padded string
+
+    return new_string
+
 
 
 if __name__ == '__main__':
     print('Starting...')
-    print("Encrypting file using ECB and CBC")
-    key = get_random_bytes(16)
-    IV = get_random_bytes(16)
-    encrypt_file('mustang.bmp', key, "unneeded", "ECB")
-    encrypt_file('mustang.bmp', key, IV, "CBC")
-    print("Encryption Finished\nNew encrypted files: cipherECB.bmp and cipherCBC.bmp")
+    t1 = input("\nExecute Task 1? (y/n) ")
+    if t1 == 'y':
+        print("Task 1:")
+        print("Encrypting file using ECB and CBC")
+        key = get_random_bytes(16)
+        IV = get_random_bytes(16)
+        encrypt_file('mustang.bmp', key, "unneeded", "ECB")
+        encrypt_file('mustang.bmp', key, IV, "CBC")
+        print("Encryption Finished\nNew encrypted files: cipherECB.bmp and cipherCBC.bmp")
+
+    print("\n\nTask 2:")
+    user_string = "sixteen sixteen :admin<true:"
+
+    print(submit(user_string))
 
     #decrypt_CBC(key, IV)
     #decrypt_ECB(key)
