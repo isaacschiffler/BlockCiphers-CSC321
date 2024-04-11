@@ -107,7 +107,7 @@ def decrypt_ECB(key):
 """submit() URL encodes any ';', '=' chars in the user string, 
 appends and prepends given strings, pads the string (PKCS#7), 
 and returns the CBC encryption of the new string"""
-def submit(string):
+def submit(string, cipher, scrambler):
     # URL encode ';' and '=' from user string
     encoded_semicolon = quote(';')
     encoded_equal = quote('=')
@@ -115,31 +115,76 @@ def submit(string):
 
     # prepend and append
     new_string = "userid=456; userdata=" + string + ";session-id=31337"
+    print("Full message to encrypt: " + new_string)
+
+    # change to byte array
+    message = new_string.encode('utf-8')
 
     # pad new string
+    bytes_needed = 16 - len(new_string) % 16
+    padding_byte = bytes([bytes_needed])
+    message += padding_byte * bytes_needed  # adds the byte representation of the number of bytes padded
 
-    # encrypt padded string
+    # encrypt padded message
+    encrypted_message = bytearray()
+    while len(message) != 0:
+        block = message[:16]
+        encrypted_block = encrypt_block(cipher, block, scrambler, "CBC")
+        encrypted_message += encrypted_block
+        message = message[16:]
+        scrambler = encrypted_block
 
-    return new_string
+    return encrypted_message
 
+
+"""Decrypt the given encrypted message and return True if ;admin=true;
+exists in the decrypted message, False otherwise"""
+def verify(encrypt):
+    # Decrypt message
+    cipher = AES.new(key, AES.MODE_CBC, IV)
+    # Decrypt the contents using AES in CBC mode
+    decrypted_contents = cipher.decrypt(encrypt)
+
+    # Unpad the decrypted contents (if necessary)
+    unpadded_contents = unpad(decrypted_contents, AES.block_size)
+
+    message = unpadded_contents.decode('utf-8')
+
+    print("Decrypted Message: " + message)
+
+    # parse for ;admin=true; in decrypted message
+    if ";admin=true;" in message:
+        return True
+    else:
+        return False
 
 
 if __name__ == '__main__':
     print('Starting...')
+    key = get_random_bytes(16)
+    IV = get_random_bytes(16)
     t1 = input("\nExecute Task 1? (y/n) ")
     if t1 == 'y':
         print("------------------------- Task 1 -------------------------\n")
         print("Encrypting file using ECB and CBC")
-        key = get_random_bytes(16)
-        IV = get_random_bytes(16)
         encrypt_file('mustang.bmp', key, "unneeded", "ECB")
         encrypt_file('mustang.bmp', key, IV, "CBC")
         print("Encryption Finished\nNew encrypted files: cipherECB.bmp and cipherCBC.bmp")
 
     print("\n\n------------------------- Task 2 -------------------------\n")
-    user_string = "sixteen sixteen :admin<true:"
+    # using this string so :admin<true: is at the start of the third block
+    user_string = "sixteen is :admin<true:"
+    print("Initial user string: " + user_string + "\n")
 
-    print(submit(user_string))
+    cipher = AES.new(key, AES.MODE_ECB)
+
+    encrypted_message = submit(user_string, cipher, IV)
+
+    print("Encrypted Message: " + str(encrypted_message))
+
+    # resume here to bit flip the encrypted message so verify returns true! ------------------------------------------
+
+    print("\nVerify Returned: " + str(verify(encrypted_message)))
 
     #decrypt_CBC(key, IV)
     #decrypt_ECB(key)
