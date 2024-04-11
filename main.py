@@ -226,7 +226,11 @@ if __name__ == '__main__':
         #print("New full encrypted message: " + str(encrypted_message)) # for debugging
 
         print("Decrypting and checking for \";admin=true;\"...")
-        print("\nVerify returned: " + str(verify(encrypted_message)) +
-              "!\nThe decrypted message contained the string \";admin=true;\"")
+        result = verify(encrypted_message)
+        print("\nVerify returned: " + str(result) + "!")
+        if result:
+            print("The decrypted message contains the string \";admin=true;\"")
+        else:
+            print("The decrypted message does not contain the string \";admin=true;\"")
 
     print("\nComplete!")
