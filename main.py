@@ -115,7 +115,7 @@ def submit(string, cipher, scrambler):
 
     # prepend and append
     new_string = "userid=456; userdata=" + string + ";session-id=31337"
-    print("Full message to encrypt: " + new_string)
+    print("Full message to encrypt: " + new_string + "\n")
 
     # change to byte array
     message = new_string.encode('utf-8')
@@ -148,7 +148,12 @@ def verify(encrypt):
     # Unpad the decrypted contents (if necessary)
     unpadded_contents = unpad(decrypted_contents, AES.block_size)
 
-    message = unpadded_contents.decode('utf-8')
+    # Manual decryption instead of .decode() because of errors in scrambling of block 2
+    message = ""
+    for byte in unpadded_contents:
+        message += chr(byte)
+
+    #message = unpadded_contents.decode('utf-8')
 
     print("Decrypted Message: " + message)
 
@@ -157,6 +162,34 @@ def verify(encrypt):
         return True
     else:
         return False
+
+
+"""Function to flip bits in specified positions of block 2 of encrypted 
+message to alter the contents of associated positions of block 3 and to 
+produce ;admin=true; in the decrypted message"""
+def flip_bit(encrypted_msg):
+    # block_2_encrypted is the scrambler used for block 3 which is where our target is
+    block_2_encrypted = encrypted_msg[16:32]
+    # print("original block 2 encrypted: " + str(block_2_encrypted))
+
+    # flip : and < to ; and =
+    # x = Pi ^ y; y = Pi'
+    y = bytearray(b';admin=true;;ses')  # what we want (Pi')
+    p_i = bytearray(b':admin<true:;ses')  # what we have
+    x = bytearray()
+    for i in range(0, len(p_i)):
+        x.append(p_i[i] ^ y[i])
+    # print("x: " + str(x))  # for debugging
+
+    # Ci-1' = Ci-1 ^ x
+    new_block_2 = bytearray()
+    for i in range(0, len(block_2_encrypted)):
+        new_block_2.append(block_2_encrypted[i] ^ x[i])
+    # print("new block 2 encrypted (Ci-1'): " + str(new_block_2))  # for debugging
+    new_encrypted_msg = encrypted_msg[:16] + new_block_2 + encrypted_msg[32:]
+
+    return new_encrypted_msg
+
 
 
 if __name__ == '__main__':
@@ -171,20 +204,29 @@ if __name__ == '__main__':
         encrypt_file('mustang.bmp', key, IV, "CBC")
         print("Encryption Finished\nNew encrypted files: cipherECB.bmp and cipherCBC.bmp")
 
-    print("\n\n------------------------- Task 2 -------------------------\n")
-    # using this string so :admin<true: is at the start of the third block
-    user_string = "sixteen is :admin<true:"
-    print("Initial user string: " + user_string + "\n")
+        # decrypt_CBC(key, IV)
+        # decrypt_ECB(key)
 
-    cipher = AES.new(key, AES.MODE_ECB)
+    t2 = input("\nExecute Task 2? (y/n) ")
+    if t2 == 'y':
+        print("\n\n------------------------- Task 2 -------------------------\n")
+        # using this string so :admin<true: is at the start of the third block
+        user_string = "sixteen is :admin<true:"
+        print("Initial user string: " + user_string + "\n")
 
-    encrypted_message = submit(user_string, cipher, IV)
+        cipher = AES.new(key, AES.MODE_ECB)
 
-    print("Encrypted Message: " + str(encrypted_message))
+        print("Encrypting...")
+        encrypted_message = submit(user_string, cipher, IV)
 
-    # resume here to bit flip the encrypted message so verify returns true! ------------------------------------------
+        # print("Encrypted Message: " + str(encrypted_message)) # for debugging
 
-    print("\nVerify Returned: " + str(verify(encrypted_message)))
+        print("Bit flipping...\n")
+        encrypted_message = flip_bit(encrypted_message)
+        #print("New full encrypted message: " + str(encrypted_message)) # for debugging
 
-    #decrypt_CBC(key, IV)
-    #decrypt_ECB(key)
+        print("Decrypting and checking for \";admin=true;\"...")
+        print("\nVerify returned: " + str(verify(encrypted_message)) +
+              "!\nThe decrypted message contained the string \";admin=true;\"")
+
+    print("\nComplete!")
