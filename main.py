@@ -100,11 +100,13 @@ def decrypt_ECB(key):
 
 
 if __name__ == '__main__':
-    print('PyCharm')
+    print('Starting...')
+    print("Encrypting file using ECB and CBC")
     key = get_random_bytes(16)
     IV = get_random_bytes(16)
-    encrypt_file('mustang.bmp', key, "unneeded", "EBC")
+    encrypt_file('mustang.bmp', key, "unneeded", "ECB")
     encrypt_file('mustang.bmp', key, IV, "CBC")
+    print("Encryption Finished\nNew encrypted files: cipherECB.bmp and cipherCBC.bmp")
 
     #decrypt_CBC(key, IV)
     #decrypt_ECB(key)
