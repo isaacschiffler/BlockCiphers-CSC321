@@ -4,7 +4,7 @@ from Crypto.Util.Padding import unpad
 
 user_text = "sixteen sixteen :admin<true:"
 
-
+"""---------------------------- Task 1 --------------------------------"""
 # function to encrypt a file
 """maybe pull out encryption of message to have encrypt_message 
 function and encrypt_file function that calls encrypt_message?"""
@@ -97,6 +97,10 @@ def decrypt_ECB(key):
     with open('decryptedECB.bmp', 'wb') as f:
         f.write(header)
         f.write(unpadded_contents)
+
+
+"""---------------------------- Task 2 --------------------------------"""
+
 
 
 if __name__ == '__main__':
